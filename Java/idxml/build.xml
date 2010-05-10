@@ -1,0 +1,88 @@
+<!-- $Id: build.xml,v 1.2 2004/05/31 05:28:07 cheetah100 Exp $ -->
+
+<project name="idxml" basedir="." default="dist">
+
+	<property name="src.dir" value="src"/>
+	<property name="bin.dir" value="bin"/>
+	<property name="dist.dir" value="dist"/>
+	<property name="doc.dir" value="doc"/>
+	<property name="buildlib.dir" value="lib"/>
+
+	<path id="lib.path">
+		<pathelement location="${bin.dir}"/>
+	</path>
+
+	<target name="init">
+		<mkdir dir="${bin.dir}"/>
+		<mkdir dir="${dist.dir}"/>
+		<mkdir dir="${doc.dir}"/>
+		<tstamp/>
+	</target>
+
+	<target name="clean">
+		<delete dir="${bin.dir}"/>
+		<delete>
+			<fileset dir="." includes="**/*.~*"/>
+			<fileset dir="." includes="**/*.java~"/>
+			<fileset dir="." includes="**/*.dcu"/>
+			<fileset dir="." includes="**/*.marks*"/>
+		</delete>
+
+	</target>
+
+	<target name="compile" depends="init">
+		<javac srcdir="${src.dir}" destdir="${bin.dir}" debug="on"
+			optimize="on" deprecation="on"
+			classpathref="lib.path"/>
+	</target>
+
+	<target name="junit" depends="clean, init, compile">
+		<junit printsummary="on" haltonfailure="no">
+			<classpath refid="lib.path"/>
+			<formatter type="plain"/>
+			<batchtest fork="yes" todir="${doc.dir}">
+				<fileset dir="${src.dir}">
+					<include name="**/*Test.java"/>
+				</fileset>
+			</batchtest>
+
+		</junit>
+	</target>
+
+	<target name="doc" depends="init">
+		<mkdir dir="${doc.dir}/api"/>
+		<javadoc sourcepath="${src.dir}" destdir="${doc.dir}/api"
+			classpathref="lib.path"
+			packagenames="net.sourceforge.idxml.*"
+		/>
+	</target>
+
+	<target name="dist" depends="init, compile">
+		<jar destfile="${dist.dir}/idxml.jar" basedir="${bin.dir}">
+			<exclude name="**/*Test*.java"/>
+		</jar>
+	</target>
+
+	<target name="cvstag" depends="init">
+		<cvs command="tag -c -F idxml-${DSTAMP}" failonerror="yes" />
+	</target>
+
+	<target name="tarball" depends="init, clean">
+		<tar destfile="${dist.dir}/idxml.tar" basedir="." excludes="dist/**, bin/**" />
+		<gzip zipfile="${dist.dir}/idxml-${DSTAMP}.tar.gz" src="${dist.dir}/idxml.tar"/>
+		<delete file="${dist.dir}/idxml.tar"/>
+
+		<mail mailhost="dot.asterisk" mailport="25" subject="Taximan Tarball - ${DSTAMP}">
+			<from address="idxml@asterisk.co.nz"/>
+			<to address="peterh@asterisk.co.nz"/>
+			<to address="markd@asterisk.co.nz"/>
+			<message>The IDXML tarball has been built.</message>
+			<fileset dir=".">
+				<include name="${dist.dir}/idxml-${DSTAMP}.tar.gz"/>
+			</fileset>
+		</mail>
+
+	</target>
+	
+</project>
+

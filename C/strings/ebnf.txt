@@ -1,0 +1,14 @@
+<program> := <statement> *
+<statement> := append <identifier> <expression> ;
+	| list ;
+	| exit ;
+	| print <expression> ;
+	| printlength <expression> ;
+	| printwords <expression> ;
+	| printwordcount <expression> ;
+	| set <identifier> <expression> ;
+<expression> := <value> { + <value> } *
+<value> := <identifier> | <constant> | <literal>
+<constant> := SPACE | TAB | NEWLINE
+<literal> := " { <letter> | <digit> | <punctuation> } * "
+<identifier> := <letter> { <letter> | <digit> } *
