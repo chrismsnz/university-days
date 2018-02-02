@@ -121,19 +121,27 @@ def create_node( state, parent, operator, depth,cost):
 def expand_node( node,open_nodes,close_nodes):
 	"""Returns a list of expanded nodes"""
 	expanded_nodes = []
-	expanded_nodes.append( create_node( move_up( node.state ), node, "u", node.depth + 1,0) )
+	
 	expanded_nodes.append( create_node( move_down( node.state ), node, "d", node.depth + 1,0) )
 	expanded_nodes.append( create_node( move_left( node.state ), node, "l", node.depth + 1,0) )
+	expanded_nodes.append( create_node( move_up( node.state ), node, "u", node.depth + 1,0) )
 	expanded_nodes.append( create_node( move_right( node.state), node, "r", node.depth + 1,0) )
 	
 	# Filter the list and remove the nodes that are impossible (move function returned None)
 	expanded_nodes = [node for node in expanded_nodes if node.state != None] #list comprehension!
+	open_state = []
+	for o in open_nodes:
+		open_state.append(o.state)
 
+	close_state = []
+	for c in close_nodes:
+		close_state.append(c.state)	
+	
 	#Remove repeated nodes
 	#Remove the nodes that are in open list
-	expanded_nodes = [node for node in expanded_nodes if node.state not in open_nodes]
+	expanded_nodes = [node for node in expanded_nodes if node.state not in open_state]
 	#Remove the nodes that are in close list
-	expanded_nodes = [node for node in expanded_nodes if node.state not in close_nodes]
+	expanded_nodes = [node for node in expanded_nodes if node.state not in close_state]
 
 	return expanded_nodes
 
@@ -159,7 +167,7 @@ def bfs( start, goal ):
 	open_nodes.append( create_node( start, None, None, 0 , 0) )
 	while True:
 		# We've run out of states, no solution.
-		if len( open_nodes ) == 0: return None
+		if len( open_nodes ) == 0: return None,None
 		# take the node from the front of the queue
 		node = open_nodes.pop(0)
 		close_nodes.append(node)
@@ -181,16 +189,17 @@ def dfs( start, goal):
 
 	# Create the stack with the root node in it.
 	open_nodes.append( create_node( start, None, None, 0 ,0) )
+	print("Printing Level")
 	while True:
 		# We've run out of states, no solution.
-		if len( open_nodes ) == 0: return None
+		if len( open_nodes ) == 0: return None,None
 		# take the node from the front of the queue
 		node = open_nodes.pop(0)
 		close_nodes.append(node)
 		# if this node is the goal, return the moves it took to get here.
 		if node.state == goal:
 			return solution_path(node)
-			
+		
 
 		#Expand the nodes and add all the expansion in the front of open list
 		expanded_nodes = expand_node( node, open_nodes,close_nodes )
@@ -208,7 +217,7 @@ def hill_climbing(start,goal):
 	open_nodes.append( create_node( start, None, None, 0,0 ) )
 	while True:
 		# We've run out of states, no solution.
-		if len( open_nodes ) == 0: return None
+		if len( open_nodes ) == 0: return None,None
 		# take the node from the front of the queue
 		node = open_nodes.pop(0)
 		close_nodes.append(node)
@@ -241,7 +250,7 @@ def best_first(start,goal):
 	open_nodes.append( create_node( start, None, None, 0 ,0) )
 	while True:
 		# We've run out of states, no solution.
-		if len( open_nodes ) == 0: return None
+		if len( open_nodes ) == 0: return None,None
 		# take the node from the front of the queue
 		node = open_nodes.pop(0)
 		close_nodes.append(node)
@@ -260,11 +269,9 @@ def a_star( start, goal ):
 	open_nodes = []
 	close_nodes = []
 	open_nodes.append( create_node( start, None, None, 0,0 ) )
-	g = 0
-	h = h(start,goal)
 	while True:
 		# We've run out of states - no solution.
-		if len( open_nodes ) == 0: return None
+		if len( open_nodes ) == 0: return None,None
 		
 		# Sort the nodes with custom compare function.
 		open_nodes.sort( cmp1 )
@@ -343,8 +350,8 @@ class Node:
 		
 # Main method
 def main():
-	### CHANGE THIS FUNCTION TO USE bfs, dfs, ids or a_star
-	result,states = bfs( starting_state, goal_state )
+	### CHANGE THIS FUNCTION TO USE bfs, dfs, best_first, hill_climbing or a_star
+	result,states = best_first( starting_state, goal_state )
 	if result == None:
 		print "No solution found"
 	elif result == [None]:
