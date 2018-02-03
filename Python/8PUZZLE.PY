@@ -122,9 +122,9 @@ def expand_node( node,open_nodes,close_nodes):
 	"""Returns a list of expanded nodes"""
 	expanded_nodes = []
 	
+	expanded_nodes.append( create_node( move_up( node.state ), node, "u", node.depth + 1,0) )
 	expanded_nodes.append( create_node( move_down( node.state ), node, "d", node.depth + 1,0) )
 	expanded_nodes.append( create_node( move_left( node.state ), node, "l", node.depth + 1,0) )
-	expanded_nodes.append( create_node( move_up( node.state ), node, "u", node.depth + 1,0) )
 	expanded_nodes.append( create_node( move_right( node.state), node, "r", node.depth + 1,0) )
 	
 	# Filter the list and remove the nodes that are impossible (move function returned None)
@@ -181,15 +181,15 @@ def bfs( start, goal ):
 		open_nodes.extend( expand_node( node, open_nodes,close_nodes) )
 		
 
-def dfs( start, goal):
+def dfs( start, goal,depth = 10):
 	"""Performs a depth first search from the start state to the goal. Depth param is optional."""
 	# A list (can act as a stack too) for the nodes.
 	open_nodes = []
 	close_nodes = []
 
+	depth_limit = depth
 	# Create the stack with the root node in it.
 	open_nodes.append( create_node( start, None, None, 0 ,0) )
-	print("Printing Level")
 	while True:
 		# We've run out of states, no solution.
 		if len( open_nodes ) == 0: return None,None
@@ -200,12 +200,21 @@ def dfs( start, goal):
 		if node.state == goal:
 			return solution_path(node)
 		
+		if node.depth < depth_limit:
+			#Expand the nodes and add all the expansion in the front of open list
+			expanded_nodes = expand_node( node, open_nodes,close_nodes )
+			if len(expanded_nodes) != 0:
+				expanded_nodes.extend(open_nodes )
+				open_nodes = expanded_nodes
 
-		#Expand the nodes and add all the expansion in the front of open list
-		expanded_nodes = expand_node( node, open_nodes,close_nodes )
-		expanded_nodes.extend(open_nodes )
-		open_nodes = expanded_nodes
 
+def ids( start, goal, depth=50 ):
+	"""Perfoms an iterative depth first search from the start state to the goal. Depth is optional."""
+	for i in range( depth ):
+		result,state = dfs( start, goal, i )
+		if result != None:
+			return result,state
+	return None,None		
 
 
 def hill_climbing(start,goal):
@@ -350,8 +359,8 @@ class Node:
 		
 # Main method
 def main():
-	### CHANGE THIS FUNCTION TO USE bfs, dfs, best_first, hill_climbing or a_star
-	result,states = best_first( starting_state, goal_state )
+	### CHANGE THIS FUNCTION TO USE bfs, dfs, ids, best_first, hill_climbing or a_star
+	result,states = ids( starting_state, goal_state,10 )
 	if result == None:
 		print "No solution found"
 	elif result == [None]:
